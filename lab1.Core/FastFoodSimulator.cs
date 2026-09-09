@@ -23,6 +23,14 @@ public sealed class FastFoodSimulator
 
     public Server Server { get; }
 
+    public IReadOnlyOrderQueue<Customer> Arrivals => _arrivals;
+
+    public IReadOnlyOrderQueue<Order> Kitchen => _kitchen;
+
+    public IReadOnlyOrderQueue<PreparedOrder> Service => _service;
+
+    public int ServingLineCount => _servingLine.Count;
+
     public FastFoodSimulator(TimeSpan arrivalInterval, TimeSpan prepInterval)
     {
         ArrivalInterval = arrivalInterval;

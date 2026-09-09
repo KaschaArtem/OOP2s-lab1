@@ -7,6 +7,8 @@ public sealed class Server
 
     public Order? CurrentOrder { get; private set; }
 
+    public Order? AnnouncedOrder { get; private set; }
+
     public int ServedCount { get; private set; }
 
     public Server(IOrderQueue<PreparedOrder> service, ServingLine servingLine)
@@ -25,6 +27,7 @@ public sealed class Server
             await prepared.Preparation.WaitAsync(cancellationToken);
 
             prepared.Order.Stage = OrderStage.Served;
+            AnnouncedOrder = prepared.Order;
             _servingLine.Remove(prepared.Order.Number)?.Announce();
             ServedCount++;
         }
