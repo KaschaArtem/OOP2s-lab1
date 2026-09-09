@@ -1,22 +1,138 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:lab1.UI.ViewModels"
+        xmlns:models="using:lab1.Core.Models"
+        xmlns:c="using:lab1.UI.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="620"
         x:Class="lab1.UI.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="lab1.UI">
+        Width="900" Height="620"
+        MinWidth="640" MinHeight="480"
+        Title="Fast Food Simulator">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+    <Window.Resources>
+        <c:NullableIntToTextConverter x:Key="OrderNumberConverter" />
+    </Window.Resources>
 
+    <Window.Styles>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#22888888" />
+            <Setter Property="BorderBrush" Value="#33888888" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="8" />
+        </Style>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.value">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+    </Window.Styles>
+
+    <DockPanel Margin="8">
+        <Border DockPanel.Dock="Top" Classes="card" Margin="8,8,8,4">
+            <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="Auto,110,20,Auto,110,20,Auto,110,*,Auto,Auto">
+                    <TextBlock Grid.Column="0" Text="Arrival (sec)"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding ArrivalSecondsText}"
+                             IsEnabled="{Binding IsNotRunning}" />
+                    <TextBlock Grid.Column="3" Text="Ordering (sec)"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="4" Text="{Binding OrderingSecondsText}"
+                             IsEnabled="{Binding IsNotRunning}" />
+                    <TextBlock Grid.Column="6" Text="Prep (sec)"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="7" Text="{Binding PrepSecondsText}"
+                             IsEnabled="{Binding IsNotRunning}" />
+                    <Button Grid.Column="9" Content="Start" Command="{Binding StartCommand}"
+                            Margin="8,0,8,0" MinWidth="80" />
+                    <Button Grid.Column="10" Content="Stop" Command="{Binding StopCommand}"
+                            MinWidth="80" />
+                </Grid>
+                <TextBlock Text="{Binding ValidationMessage}"
+                           Foreground="#E81123"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding HasError}" />
+            </StackPanel>
+        </Border>
+
+        <UniformGrid Rows="2" Columns="2">
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="header" Text="Order Line" />
+                    <TextBlock Classes="value" Text="{Binding OrderLineCount}" />
+                    <TextBlock Classes="caption" Text="Customers waiting to place an order" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="header" Text="Order Taker" />
+                    <TextBlock Classes="value"
+                               Text="{Binding OrderTakerOrderNumber, Converter={StaticResource OrderNumberConverter}}" />
+                    <TextBlock Classes="caption" Text="Order currently being taken" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <TextBlock Grid.Row="0" Classes="header" Text="Kitchen" />
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="24">
+                        <StackPanel>
+                            <TextBlock Classes="caption" Text="Preparing" />
+                            <TextBlock Classes="value"
+                                       Text="{Binding KitchenCurrentOrderNumber, Converter={StaticResource OrderNumberConverter}}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Classes="caption" Text="Waiting orders" />
+                            <TextBlock Classes="value" Text="{Binding KitchenWaitingCount}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ListBox Grid.Row="2" ItemsSource="{Binding KitchenWaitingOrders}"
+                             MinHeight="120" Margin="0,8,0,0">
+                        <ListBox.DataTemplates>
+                            <DataTemplate x:DataType="models:Order">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Number, StringFormat='#{0}'}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding CustomerName}" />
+                                    <TextBlock Text="{Binding CustomerSurname}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.DataTemplates>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="header" Text="Pickup Counter" />
+                    <TextBlock Classes="value"
+                               Text="{Binding PickupOrderNumber, Converter={StaticResource OrderNumberConverter}}" />
+                    <TextBlock Classes="caption" Text="Order available for pickup" />
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,16,0,0">
+                        <TextBlock Text="Customers in serving line:" />
+                        <TextBlock Text="{Binding ServingLineCount}" FontWeight="Bold" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+    </DockPanel>
 </Window>
