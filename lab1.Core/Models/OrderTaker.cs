@@ -9,6 +9,8 @@ public sealed class OrderTaker
     private readonly ServingLine _servingLine;
     private readonly OrderNumberGenerator _numbers;
 
+    public TimeSpan OrderingInterval { get; }
+
     public Customer? CurrentCustomer { get; private set; }
 
     public Order? CurrentOrder { get; private set; }
@@ -17,12 +19,14 @@ public sealed class OrderTaker
         IOrderQueue<Customer> arrivals,
         IOrderQueue<Order> kitchen,
         ServingLine servingLine,
-        OrderNumberGenerator numbers)
+        OrderNumberGenerator numbers,
+        TimeSpan orderingInterval)
     {
         _arrivals = arrivals;
         _kitchen = kitchen;
         _servingLine = servingLine;
         _numbers = numbers;
+        OrderingInterval = orderingInterval;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -35,6 +39,8 @@ public sealed class OrderTaker
 
             var order = new Order(_numbers.Next(), customer.Name, customer.Surname);
             CurrentOrder = order;
+
+            await Task.Delay(OrderingInterval, cancellationToken);
 
             customer.ReceiveReceipt(order);
             _servingLine.Add(order.Number, customer);

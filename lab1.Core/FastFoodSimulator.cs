@@ -7,6 +7,7 @@ namespace lab1.Core;
 public sealed class FastFoodSimulator
 {
     public TimeSpan ArrivalInterval { get; }
+    public TimeSpan OrderingInterval { get; }
     public TimeSpan PrepInterval { get; }
 
     private readonly IOrderQueue<Customer> _arrivals = new AsyncOrderQueue<Customer>();
@@ -31,12 +32,13 @@ public sealed class FastFoodSimulator
 
     public int ServingLineCount => _servingLine.Count;
 
-    public FastFoodSimulator(TimeSpan arrivalInterval, TimeSpan prepInterval)
+    public FastFoodSimulator(TimeSpan arrivalInterval, TimeSpan orderingInterval, TimeSpan prepInterval)
     {
         ArrivalInterval = arrivalInterval;
+        OrderingInterval = orderingInterval;
         PrepInterval = prepInterval;
 
-        OrderTaker = new OrderTaker(_arrivals, _kitchen, _servingLine, _numbers);
+        OrderTaker = new OrderTaker(_arrivals, _kitchen, _servingLine, _numbers, orderingInterval);
         Cook = new Cook(_kitchen, _service, prepInterval);
         Server = new Server(_service, _servingLine);
     }
