@@ -45,6 +45,9 @@ public sealed class OrderTaker
             customer.ReceiveReceipt(order);
             _servingLine.Add(order.Number, customer);
             _kitchen.Enqueue(order);
+
+            CurrentCustomer = null;
+            CurrentOrder = null;
         }
     }
 }

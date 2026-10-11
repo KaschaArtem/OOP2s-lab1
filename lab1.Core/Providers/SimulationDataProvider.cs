@@ -17,11 +17,18 @@ public sealed class SimulationDataProvider
 
         return new SimulationSnapshot(
             OrderLineCount: _simulator.Arrivals.Count,
+            OrderLineCustomers: _simulator.Arrivals.Snapshot(),
             OrderTakerOrderNumber: _simulator.OrderTaker.CurrentOrder?.Number,
+            OrderTakerCustomerName: _simulator.OrderTaker.CurrentCustomer is { } takerCustomer
+                ? $"{takerCustomer.Name} {takerCustomer.Surname}"
+                : null,
             KitchenCurrentOrderNumber: _simulator.Cook.CurrentOrder?.Number,
+            KitchenCurrentCustomerName: _simulator.Cook.CurrentOrder is { } cookingOrder
+                ? $"{cookingOrder.CustomerName} {cookingOrder.CustomerSurname}"
+                : null,
             KitchenWaitingOrders: kitchenWaiting,
             KitchenWaitingCount: kitchenWaiting.Count,
-            PickupOrderNumber: _simulator.Server.AnnouncedOrder?.Number,
+            PickupWaitingCustomers: _simulator.ServingLineCustomers,
             ServingLineCount: _simulator.ServingLineCount);
     }
 

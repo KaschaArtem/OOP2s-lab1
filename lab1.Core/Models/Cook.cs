@@ -38,6 +38,8 @@ public sealed class Cook
             order.Stage = OrderStage.Ready;
             PreparedCount++;
             preparation.SetResult();
+
+            CurrentOrder = null;
         }
     }
 }

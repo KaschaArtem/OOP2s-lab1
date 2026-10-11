@@ -32,6 +32,8 @@ public sealed class FastFoodSimulator
 
     public int ServingLineCount => _servingLine.Count;
 
+    public IReadOnlyList<Customer> ServingLineCustomers => _servingLine.Snapshot();
+
     public FastFoodSimulator(TimeSpan arrivalInterval, TimeSpan orderingInterval, TimeSpan prepInterval)
     {
         ArrivalInterval = arrivalInterval;

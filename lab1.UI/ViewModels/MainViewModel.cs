@@ -42,10 +42,19 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private int _orderLineCount;
 
     [ObservableProperty]
+    private IReadOnlyList<Customer> _orderLineCustomers = Array.Empty<Customer>();
+
+    [ObservableProperty]
     private int? _orderTakerOrderNumber;
 
     [ObservableProperty]
+    private string? _orderTakerCustomerName;
+
+    [ObservableProperty]
     private int? _kitchenCurrentOrderNumber;
+
+    [ObservableProperty]
+    private string? _kitchenCurrentCustomerName;
 
     [ObservableProperty]
     private IReadOnlyList<Order> _kitchenWaitingOrders = Array.Empty<Order>();
@@ -54,7 +63,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private int _kitchenWaitingCount;
 
     [ObservableProperty]
-    private int? _pickupOrderNumber;
+    private IReadOnlyList<Customer> _pickupWaitingCustomers = Array.Empty<Customer>();
 
     [ObservableProperty]
     private int _servingLineCount;
@@ -172,22 +181,28 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private void ApplySnapshot(SimulationSnapshot s)
     {
         OrderLineCount = s.OrderLineCount;
+        OrderLineCustomers = s.OrderLineCustomers;
         OrderTakerOrderNumber = s.OrderTakerOrderNumber;
+        OrderTakerCustomerName = s.OrderTakerCustomerName;
         KitchenCurrentOrderNumber = s.KitchenCurrentOrderNumber;
+        KitchenCurrentCustomerName = s.KitchenCurrentCustomerName;
         KitchenWaitingOrders = s.KitchenWaitingOrders;
         KitchenWaitingCount = s.KitchenWaitingCount;
-        PickupOrderNumber = s.PickupOrderNumber;
+        PickupWaitingCustomers = s.PickupWaitingCustomers;
         ServingLineCount = s.ServingLineCount;
     }
 
     private void ClearSnapshot()
     {
         OrderLineCount = 0;
+        OrderLineCustomers = Array.Empty<Customer>();
         OrderTakerOrderNumber = null;
+        OrderTakerCustomerName = null;
         KitchenCurrentOrderNumber = null;
+        KitchenCurrentCustomerName = null;
         KitchenWaitingOrders = Array.Empty<Order>();
         KitchenWaitingCount = 0;
-        PickupOrderNumber = null;
+        PickupWaitingCustomers = Array.Empty<Customer>();
         ServingLineCount = 0;
     }
 
