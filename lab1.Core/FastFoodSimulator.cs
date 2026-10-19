@@ -106,10 +106,6 @@ public sealed class FastFoodSimulator
         await Task.WhenAll(workers);
     }
 
-    /// <summary>
-    /// Pulls items from <paramref name="queue"/> and assigns each one to the first
-    /// free worker of <paramref name="pool"/> in order: worker #1, then #2, and so on.
-    /// </summary>
     private static async Task DispatchAsync<TWorker, TItem>(
         IOrderQueue<TItem> queue,
         WorkerPool<TWorker> pool,
