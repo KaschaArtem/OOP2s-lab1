@@ -83,17 +83,37 @@
                         <TextBlock Classes="value" Text="{Binding OrderLineCount}" />
                         <TextBlock Classes="caption" Text="Customers waiting to place an order" />
                     </StackPanel>
-                    <ListBox Grid.Row="2" ItemsSource="{Binding OrderLineCustomers}"
-                             MinHeight="100" Margin="0,8,0,0">
-                        <ListBox.DataTemplates>
-                            <DataTemplate x:DataType="models:Customer">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding Name}" />
-                                    <TextBlock Text="{Binding Surname}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.DataTemplates>
-                    </ListBox>
+                    <ScrollViewer Grid.Row="2" Margin="0,8,0,0" MinHeight="100"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding OrderLineCustomers}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:Customer">
+                                    <StackPanel Width="92" Margin="4" Spacing="4">
+                                        <Border Background="#FFEDEDED"
+                                                CornerRadius="10"
+                                                Padding="6"
+                                                HorizontalAlignment="Center">
+                                            <Image Source="avares://lab1.UI/Assets/human.png"
+                                                   Width="72" Height="72"
+                                                   Stretch="Uniform" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="12" TextAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Surname}"
+                                                   FontSize="12" TextAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </Grid>
             </Border>
 
@@ -106,6 +126,58 @@
                                Text="{Binding OrderTakerCustomerName, Converter={StaticResource NameConverter}}" />
                     <TextBlock Classes="caption" Text="Order currently being taken" />
                 </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <TextBlock Grid.Row="0" Classes="header" Text="Pickup Counter" />
+                    <StackPanel Grid.Row="1">
+                        <TextBlock Classes="value" Text="{Binding ServingLineCount}" />
+                        <TextBlock Classes="caption" Text="Customers waiting for pickup" />
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="2" Margin="0,8,0,0" MinHeight="100"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding PickupWaitingCustomers}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:Customer">
+                                    <StackPanel Width="92" Margin="4" Spacing="4">
+                                        <Panel HorizontalAlignment="Center">
+                                            <Border Background="#FFEDEDED"
+                                                    CornerRadius="10"
+                                                    Padding="6">
+                                                <Image Source="avares://lab1.UI/Assets/human.png"
+                                                       Width="72" Height="72"
+                                                       Stretch="Uniform" />
+                                            </Border>
+                                            <Border Background="#FF3B82F6"
+                                                    CornerRadius="9"
+                                                    Padding="6,1"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Top">
+                                                <TextBlock Text="{Binding Receipt.Number, StringFormat='#{0}'}"
+                                                           Foreground="White"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold" />
+                                            </Border>
+                                        </Panel>
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="12" TextAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Surname}"
+                                                   FontSize="12" TextAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
             </Border>
 
             <Border Classes="card">
@@ -129,28 +201,6 @@
                         <ListBox.DataTemplates>
                             <DataTemplate x:DataType="models:Order">
                                 <TextBlock Text="{Binding Number, StringFormat='#{0}'}" FontWeight="SemiBold" />
-                            </DataTemplate>
-                        </ListBox.DataTemplates>
-                    </ListBox>
-                </Grid>
-            </Border>
-
-            <Border Classes="card">
-                <Grid RowDefinitions="Auto,Auto,*">
-                    <TextBlock Grid.Row="0" Classes="header" Text="Pickup Counter" />
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
-                        <TextBlock Text="Customers waiting for pickup:" />
-                        <TextBlock Text="{Binding ServingLineCount}" FontWeight="Bold" />
-                    </StackPanel>
-                    <ListBox Grid.Row="2" ItemsSource="{Binding PickupWaitingCustomers}"
-                             MinHeight="120" Margin="0,8,0,0">
-                        <ListBox.DataTemplates>
-                            <DataTemplate x:DataType="models:Customer">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding Receipt.Number, StringFormat='#{0}'}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Name}" />
-                                    <TextBlock Text="{Binding Surname}" />
-                                </StackPanel>
                             </DataTemplate>
                         </ListBox.DataTemplates>
                     </ListBox>

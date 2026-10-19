@@ -21,7 +21,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private string _arrivalSecondsText = "2";
 
     [ObservableProperty]
-    private string _orderingSecondsText = "1";
+    private string _orderingSecondsText = "2.5";
 
     [ObservableProperty]
     private string _prepSecondsText = "3";
