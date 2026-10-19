@@ -35,7 +35,6 @@ public sealed class OrderTaker
         {
             var customer = await _arrivals.DequeueAsync(cancellationToken);
             CurrentCustomer = customer;
-            customer.StartOrdering();
 
             var order = new Order(_numbers.Next(), customer.Name, customer.Surname);
             CurrentOrder = order;

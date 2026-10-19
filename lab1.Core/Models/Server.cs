@@ -22,7 +22,7 @@ public sealed class Server
             await prepared.Preparation.WaitAsync(cancellationToken);
 
             prepared.Order.Stage = OrderStage.Served;
-            _servingLine.Remove(prepared.Order.Number)?.Announce();
+            _servingLine.Remove(prepared.Order.Number);
             ServedCount++;
         }
     }

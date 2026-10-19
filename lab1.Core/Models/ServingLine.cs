@@ -28,13 +28,11 @@ public sealed class ServingLine
         }
     }
 
-    public Customer? Remove(int orderNumber)
+    public bool Remove(int orderNumber)
     {
         lock (_gate)
         {
-            if (_waiting.Remove(orderNumber, out var customer))
-                return customer;
-            return null;
+            return _waiting.Remove(orderNumber);
         }
     }
 }
