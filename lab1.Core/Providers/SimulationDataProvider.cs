@@ -15,17 +15,25 @@ public sealed class SimulationDataProvider
     {
         var kitchenWaiting = _simulator.Kitchen.Snapshot();
 
+        var orderTakers = _simulator.OrderTakers
+            .Select(taker => new WorkerSnapshot(
+                taker.CurrentOrder?.Number,
+                taker.CurrentCustomer?.Name,
+                taker.CurrentCustomer?.Surname))
+            .ToArray();
+
+        var cooks = _simulator.Cooks
+            .Select(cook => new WorkerSnapshot(
+                cook.CurrentOrder?.Number,
+                cook.CurrentOrder?.CustomerName,
+                cook.CurrentOrder?.CustomerSurname))
+            .ToArray();
+
         return new SimulationSnapshot(
             OrderLineCount: _simulator.Arrivals.Count,
             OrderLineCustomers: _simulator.Arrivals.Snapshot(),
-            OrderTakerOrderNumber: _simulator.OrderTaker.CurrentOrder?.Number,
-            OrderTakerCustomerName: _simulator.OrderTaker.CurrentCustomer is { } takerCustomer
-                ? $"{takerCustomer.Name} {takerCustomer.Surname}"
-                : null,
-            KitchenCurrentOrderNumber: _simulator.Cook.CurrentOrder?.Number,
-            KitchenCurrentCustomerName: _simulator.Cook.CurrentOrder is { } cookingOrder
-                ? $"{cookingOrder.CustomerName} {cookingOrder.CustomerSurname}"
-                : null,
+            OrderTakers: orderTakers,
+            Cooks: cooks,
             KitchenWaitingOrders: kitchenWaiting,
             KitchenWaitingCount: kitchenWaiting.Count,
             PickupWaitingCustomers: _simulator.ServingLineCustomers,

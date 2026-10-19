@@ -4,8 +4,7 @@ namespace lab1.Core.Async;
 
 public sealed class AsyncOrderQueue<T> : IOrderQueue<T>
 {
-    private readonly Channel<T> _channel = Channel.CreateUnbounded<T>(
-        new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+    private readonly Channel<T> _channel = Channel.CreateUnbounded<T>();
 
     private readonly object _gate = new();
     private readonly LinkedList<T> _buffered = new();

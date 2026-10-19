@@ -5,10 +5,8 @@ namespace lab1.Core.Providers;
 public sealed record SimulationSnapshot(
     int OrderLineCount,
     IReadOnlyList<Customer> OrderLineCustomers,
-    int? OrderTakerOrderNumber,
-    string? OrderTakerCustomerName,
-    int? KitchenCurrentOrderNumber,
-    string? KitchenCurrentCustomerName,
+    IReadOnlyList<WorkerSnapshot> OrderTakers,
+    IReadOnlyList<WorkerSnapshot> Cooks,
     IReadOnlyList<Order> KitchenWaitingOrders,
     int KitchenWaitingCount,
     IReadOnlyList<Customer> PickupWaitingCustomers,

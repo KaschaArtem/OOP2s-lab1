@@ -1,5 +1,5 @@
-using lab1.Core.Models;
 using lab1.Core.Async;
+using lab1.Core.Models;
 using lab1.Core.Utils;
 
 namespace lab1.Core;
@@ -7,7 +7,9 @@ namespace lab1.Core;
 public sealed class FastFoodSimulator
 {
     public TimeSpan ArrivalInterval { get; }
+
     public TimeSpan OrderingInterval { get; }
+
     public TimeSpan PrepInterval { get; }
 
     private readonly IOrderQueue<Customer> _arrivals = new AsyncOrderQueue<Customer>();
@@ -15,12 +17,15 @@ public sealed class FastFoodSimulator
     private readonly IOrderQueue<PreparedOrder> _service = new AsyncOrderQueue<PreparedOrder>();
     private readonly CustomerFactory _customerFactory = new();
     private readonly OrderNumberGenerator _numbers = new();
-    
+
     private readonly ServingLine _servingLine = new();
 
-    public OrderTaker OrderTaker { get; }
+    private readonly WorkerPool<OrderTaker> _orderTakerPool;
+    private readonly WorkerPool<Cook> _cookPool;
 
-    public Cook Cook { get; }
+    public IReadOnlyList<OrderTaker> OrderTakers { get; }
+
+    public IReadOnlyList<Cook> Cooks { get; }
 
     public Server Server { get; }
 
@@ -34,15 +39,31 @@ public sealed class FastFoodSimulator
 
     public IReadOnlyList<Customer> ServingLineCustomers => _servingLine.Snapshot();
 
-    public FastFoodSimulator(TimeSpan arrivalInterval, TimeSpan orderingInterval, TimeSpan prepInterval)
+    public FastFoodSimulator(
+        TimeSpan arrivalInterval,
+        TimeSpan orderingInterval,
+        TimeSpan prepInterval,
+        int orderTakerCount,
+        int cookCount)
     {
         ArrivalInterval = arrivalInterval;
         OrderingInterval = orderingInterval;
         PrepInterval = prepInterval;
 
-        OrderTaker = new OrderTaker(_arrivals, _kitchen, _servingLine, _numbers, orderingInterval);
-        Cook = new Cook(_kitchen, _service, prepInterval);
+        OrderTakers = Enumerable
+            .Range(0, orderTakerCount)
+            .Select(_ => new OrderTaker(_kitchen, _servingLine, _numbers, orderingInterval))
+            .ToArray();
+
+        Cooks = Enumerable
+            .Range(0, cookCount)
+            .Select(_ => new Cook(_service, prepInterval))
+            .ToArray();
+
         Server = new Server(_service, _servingLine);
+
+        _orderTakerPool = new WorkerPool<OrderTaker>(OrderTakers);
+        _cookPool = new WorkerPool<Cook>(Cooks);
     }
 
     private Customer ArriveCustomer(Customer customer)
@@ -57,8 +78,16 @@ public sealed class FastFoodSimulator
     {
         var workers = new[]
         {
-            IgnoreCancellation(OrderTaker.RunAsync(cancellationToken)),
-            IgnoreCancellation(Cook.RunAsync(cancellationToken)),
+            IgnoreCancellation(DispatchAsync(
+                _arrivals,
+                _orderTakerPool,
+                (taker, customer, token) => taker.ProcessAsync(customer, token),
+                cancellationToken)),
+            IgnoreCancellation(DispatchAsync(
+                _kitchen,
+                _cookPool,
+                (cook, order, token) => cook.ProcessAsync(order, token),
+                cancellationToken)),
             IgnoreCancellation(Server.RunAsync(cancellationToken)),
         };
 
@@ -75,6 +104,58 @@ public sealed class FastFoodSimulator
         }
 
         await Task.WhenAll(workers);
+    }
+
+    /// <summary>
+    /// Pulls items from <paramref name="queue"/> and assigns each one to the first
+    /// free worker of <paramref name="pool"/> in order: worker #1, then #2, and so on.
+    /// </summary>
+    private static async Task DispatchAsync<TWorker, TItem>(
+        IOrderQueue<TItem> queue,
+        WorkerPool<TWorker> pool,
+        Func<TWorker, TItem, CancellationToken, Task> handler,
+        CancellationToken cancellationToken)
+        where TWorker : class
+    {
+        var inFlight = new List<Task>();
+
+        try
+        {
+            while (true)
+            {
+                var item = await queue.DequeueAsync(cancellationToken);
+                var worker = await pool.AcquireAsync(cancellationToken);
+
+                inFlight.RemoveAll(task => task.IsCompleted);
+                inFlight.Add(ProcessAsync(worker, item, pool, handler, cancellationToken));
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        await Task.WhenAll(inFlight);
+    }
+
+    private static async Task ProcessAsync<TWorker, TItem>(
+        TWorker worker,
+        TItem item,
+        WorkerPool<TWorker> pool,
+        Func<TWorker, TItem, CancellationToken, Task> handler,
+        CancellationToken cancellationToken)
+        where TWorker : class
+    {
+        try
+        {
+            await handler(worker, item, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            pool.Release(worker);
+        }
     }
 
     private static async Task IgnoreCancellation(Task task)

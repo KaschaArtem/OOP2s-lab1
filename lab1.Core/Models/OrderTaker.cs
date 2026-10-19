@@ -4,7 +4,6 @@ namespace lab1.Core.Models;
 
 public sealed class OrderTaker
 {
-    private readonly IOrderQueue<Customer> _arrivals;
     private readonly IOrderQueue<Order> _kitchen;
     private readonly ServingLine _servingLine;
     private readonly OrderNumberGenerator _numbers;
@@ -16,37 +15,31 @@ public sealed class OrderTaker
     public Order? CurrentOrder { get; private set; }
 
     public OrderTaker(
-        IOrderQueue<Customer> arrivals,
         IOrderQueue<Order> kitchen,
         ServingLine servingLine,
         OrderNumberGenerator numbers,
         TimeSpan orderingInterval)
     {
-        _arrivals = arrivals;
         _kitchen = kitchen;
         _servingLine = servingLine;
         _numbers = numbers;
         OrderingInterval = orderingInterval;
     }
 
-    public async Task RunAsync(CancellationToken cancellationToken)
+    public async Task ProcessAsync(Customer customer, CancellationToken cancellationToken)
     {
-        while (true)
-        {
-            var customer = await _arrivals.DequeueAsync(cancellationToken);
-            CurrentCustomer = customer;
+        CurrentCustomer = customer;
 
-            var order = new Order(_numbers.Next(), customer.Name, customer.Surname);
-            CurrentOrder = order;
+        var order = new Order(_numbers.Next(), customer.Name, customer.Surname);
+        CurrentOrder = order;
 
-            await Task.Delay(OrderingInterval, cancellationToken);
+        await Task.Delay(OrderingInterval, cancellationToken);
 
-            customer.ReceiveReceipt(order);
-            _servingLine.Add(order.Number, customer);
-            _kitchen.Enqueue(order);
+        customer.ReceiveReceipt(order);
+        _servingLine.Add(order.Number, customer);
+        _kitchen.Enqueue(order);
 
-            CurrentCustomer = null;
-            CurrentOrder = null;
-        }
+        CurrentCustomer = null;
+        CurrentOrder = null;
     }
 }

@@ -16,6 +16,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 {
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromMilliseconds(100);
     private const double MaxSeconds = 3600;
+    private const int MinWorkers = 1;
+    private const int MaxWorkers = 10;
 
     [ObservableProperty]
     private string _arrivalSecondsText = "2";
@@ -45,16 +47,16 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private IReadOnlyList<Customer> _orderLineCustomers = Array.Empty<Customer>();
 
     [ObservableProperty]
-    private int? _orderTakerOrderNumber;
+    private int _orderTakerCount = 1;
 
     [ObservableProperty]
-    private string? _orderTakerCustomerName;
+    private int _cookCount = 1;
 
     [ObservableProperty]
-    private int? _kitchenCurrentOrderNumber;
+    private IReadOnlyList<WorkerSnapshot> _orderTakers = Array.Empty<WorkerSnapshot>();
 
     [ObservableProperty]
-    private string? _kitchenCurrentCustomerName;
+    private IReadOnlyList<WorkerSnapshot> _cooks = Array.Empty<WorkerSnapshot>();
 
     [ObservableProperty]
     private IReadOnlyList<Order> _kitchenWaitingOrders = Array.Empty<Order>();
@@ -93,11 +95,25 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (OrderTakerCount is < MinWorkers or > MaxWorkers)
+        {
+            Fail($"The number of cashiers must be between {MinWorkers} and {MaxWorkers}.");
+            return;
+        }
+
+        if (CookCount is < MinWorkers or > MaxWorkers)
+        {
+            Fail($"The number of cooks must be between {MinWorkers} and {MaxWorkers}.");
+            return;
+        }
+
         var cts = new CancellationTokenSource();
         var simulator = new FastFoodSimulator(
             TimeSpan.FromSeconds(arrival),
             TimeSpan.FromSeconds(ordering),
-            TimeSpan.FromSeconds(prep));
+            TimeSpan.FromSeconds(prep),
+            OrderTakerCount,
+            CookCount);
         var provider = new SimulationDataProvider(simulator);
         provider.Updated += OnUpdated;
 
@@ -182,10 +198,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         OrderLineCount = s.OrderLineCount;
         OrderLineCustomers = s.OrderLineCustomers;
-        OrderTakerOrderNumber = s.OrderTakerOrderNumber;
-        OrderTakerCustomerName = s.OrderTakerCustomerName;
-        KitchenCurrentOrderNumber = s.KitchenCurrentOrderNumber;
-        KitchenCurrentCustomerName = s.KitchenCurrentCustomerName;
+        OrderTakers = s.OrderTakers;
+        Cooks = s.Cooks;
         KitchenWaitingOrders = s.KitchenWaitingOrders;
         KitchenWaitingCount = s.KitchenWaitingCount;
         PickupWaitingCustomers = s.PickupWaitingCustomers;
@@ -196,10 +210,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         OrderLineCount = 0;
         OrderLineCustomers = Array.Empty<Customer>();
-        OrderTakerOrderNumber = null;
-        OrderTakerCustomerName = null;
-        KitchenCurrentOrderNumber = null;
-        KitchenCurrentCustomerName = null;
+        OrderTakers = Array.Empty<WorkerSnapshot>();
+        Cooks = Array.Empty<WorkerSnapshot>();
         KitchenWaitingOrders = Array.Empty<Order>();
         KitchenWaitingCount = 0;
         PickupWaitingCustomers = Array.Empty<Customer>();

@@ -16,7 +16,11 @@ public sealed class ServingLine
     {
         lock (_gate)
         {
-            return _waiting.Values.ToList().AsReadOnly();
+            return _waiting
+                .OrderBy(entry => entry.Key)
+                .Select(entry => entry.Value)
+                .ToList()
+                .AsReadOnly();
         }
     }
 
